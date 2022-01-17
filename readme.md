@@ -1,7 +1,6 @@
 # Firestore CMS with Google Sheets
 A Google App Script for managing a Firebase Firestore database using Google Sheets.
 
----
 ## Key features
 * Two way sync between Firestore and Sheets
 * Manage multiple Firestore collections with a single spreadsheet
@@ -11,7 +10,6 @@ A Google App Script for managing a Firebase Firestore database using Google Shee
 * Sheet validation styles
 * Built in setup for Firebase authentication
 
----
 ## How to install
 You only need to follow this once:
 1. Make a copy of this spreadsheet: [bit.ly/firescore-cms](https://bit.ly/firestore-cms).\
@@ -24,7 +22,6 @@ That's it!
 
 Alternatively, from a Google Sheet, click Extensions -> Apps Script, and paste the the code from [this file](dist/firestore-sheets-cms.gs) as is. No neet to change anything.
 
----
 ## How to use
 
 ### Collection setup
@@ -64,7 +61,6 @@ Make sure to include any possible field.
    - **Do not** use quotation marks like `["a","b"]`.
    - Cells with square brackets will be colored in purple to help you identify this special content type. 
 
----
 ## What happens on sync?
 1. Each row in your sheet is published to Firestore, replacing an existing document with the same ID, or creating a new one if it doesn'e exist.
 1. Invalid rows, missing an ID or a mandatory field - will not be published.
