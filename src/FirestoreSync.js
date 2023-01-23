@@ -73,7 +73,7 @@ function syncWithFirestore() {
     }
 
     //Updating/creating FS documents from valid rows
-    fs.updateDocument(sheetName() + "/" + rowId, rowToFsDocObject(rowValues));
+    fs.updateDocument(sheetName() + "/" + rowId, rowToFsDocObject(rowValues),true);
     docsUpdated++;
   });
 
