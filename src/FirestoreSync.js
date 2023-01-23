@@ -31,7 +31,7 @@ function syncWithFirestore() {
   var fs = firestore();
   if (fs == null) return;
 
-  // Load sheet content 
+  // Load sheet content
   var sheetValues = sheetContentRange().getValues();
   var mandatoryFields = headers.filter(header => header.isMandatory).map(header => header.label);
 
@@ -82,7 +82,7 @@ function syncWithFirestore() {
 
   //Add to sheet the FS documents that are missing
   var idColumnValues = sheet().getRange(2, headerColumnNum("_id"), sheet().getLastRow() - 2 + 1, 1).getValues();
-  var existingIds = idColumnValues.map(idRangeValues => idRangeValues[0]);//since each row is an array
+  var existingIds = idColumnValues.map(idRangeValues => idRangeValues[0].toString());//since each row is an array
   fsDocs.forEach((doc) => {
     var docId = doc.name.substring(doc.name.lastIndexOf("/") + 1);
     if (existingIds.indexOf(docId) < 0) {
@@ -107,17 +107,17 @@ function syncWithFirestore() {
 /**
  * A doc object look like this:
  * {
- *   "name":"projects/my-firebase-project/(default)/documents/products/op-1,, 
+ *   "name":"projects/my-firebase-project/(default)/documents/products/op-1,,
  *   "fields":{
  *          "productName": { "stringValue": "OP-1 Portable Synthesizer" },
  *          "price":  {"integerValue": "143" },
  *          "inSock": { "booleanValue": true },
- *          "categories": { "arrayValue": { "values": [ { "stringValue": "handheld" } ,{ "stringValue": "synth" } ] } }, 
+ *          "categories": { "arrayValue": { "values": [ { "stringValue": "handheld" } ,{ "stringValue": "synth" } ] } },
  *         }
  *    "createTime": ...
  * }
- * 
- * Extracts the ID from teh end of the "name" 
+ *
+ * Extracts the ID from teh end of the "name"
  * and the fields from the "fields"
  * and makes the necessary conversions.
  */
