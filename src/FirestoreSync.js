@@ -8,8 +8,14 @@
  *    - If the row is inactive - deletes it from Firestore
  * 2. Goes through the existing docs in Firestore, looking for IDs that aren't in the sheet, and adding them to the sheet
  */
+function updateFirestoreFromSheet() {
+  syncWithFirestore(true,false);
+}
+function downloadMissingDocsFromFirestore() {
+  syncWithFirestore(false,true);
+}
 
-function syncWithFirestore() {
+function syncWithFirestore(syncup=true,syncdown=true) {
 
   if (sheetContentRange() == null) return;
   var headers = getSheetHeaders();
@@ -31,65 +37,71 @@ function syncWithFirestore() {
   var fs = firestore();
   if (fs == null) return;
 
-  // Load sheet content
-  var sheetValues = sheetContentRange().getValues();
-  var mandatoryFields = headers.filter(header => header.isMandatory).map(header => header.label);
 
-  // Update FS documents from sheet
-  sheetValues.forEach((rowValues) => {
+  if (syncup) {
+    // Load sheet content
+    var sheetValues = sheetContentRange().getValues();
+    var mandatoryFields = headers.filter(header => header.isMandatory).map(header => header.label);
 
-    var rowObject = {};
-    for (var i = 0; i < rowValues.length; i++) {
-      rowObject[headers[i].label] = rowValues[i]
-    };
-    var rowId = rowObject["_id"];
+    // Update FS documents from sheet
+    sheetValues.forEach((rowValues) => {
 
-    //skipping a row if ID is missing
-    if (rowId == "") {
-      missingIds++;
-      return;
-    }
+      var rowObject = {};
+      for (var i = 0; i < rowValues.length; i++) {
+        rowObject[headers[i].label] = rowValues[i]
+      };
+      var rowId = rowObject["_id"];
 
-    //skipping it a mandatory field is empty
-    var missingMandatoryFound = false;
-    mandatoryFields.forEach((fieldName) => {
-      // var fieldValue = rowValues[headerColumnNum(fieldName) - 1];
-      if (rowObject[fieldName] == "") {
-        missingMandatoryFound = true;
+      //skipping a row if ID is missing
+      if (rowId == "") {
+        missingIds++;
+        return;
+      }
+
+      //skipping it a mandatory field is empty
+      var missingMandatoryFound = false;
+      mandatoryFields.forEach((fieldName) => {
+        // var fieldValue = rowValues[headerColumnNum(fieldName) - 1];
+        if (rowObject[fieldName] == "") {
+          missingMandatoryFound = true;
+        }
+      });
+      if (missingMandatoryFound && rowObject["_active"] === true) {
+        missingMandatory++;
+        return;
+      }
+
+
+      //Deleting FS doc if row not marked as active
+      // var rowIsActive = rowValues[headerColumnNum("_active") - 1] === true;
+      if (!rowObject["_active"] === true) {
+        fs.deleteDocument(sheetName() + "/" + rowId);
+        docsDeleted++;
+        return;
+      }
+
+      //Updating/creating FS documents from valid rows
+      fs.updateDocument(sheetName() + "/" + rowId, rowToFsDocObject(rowValues), true);
+      docsUpdated++;
+    });
+  }
+
+  if (syncdown) {
+
+    //Load current FS documents
+    const fsDocs = fs.getDocuments(sheetName());
+
+    //Add to sheet the FS documents that are missing
+    var idColumnValues = sheet().getRange(2, headerColumnNum("_id"), sheet().getLastRow() - 2 + 1, 1).getValues();
+    var existingIds = idColumnValues.map(idRangeValues => idRangeValues[0].toString()); //since each row is an array
+    fsDocs.forEach((doc) => {
+      var docId = doc.name.substring(doc.name.lastIndexOf("/") + 1);
+      if (existingIds.indexOf(docId) < 0) {
+        addDocFromFirestore(docId, doc.fields);
+        docsAdded++;
       }
     });
-    if (missingMandatoryFound && rowObject["_active"] === true) {
-      missingMandatory++;
-      return;
-    }
-
-
-    //Deleting FS doc if row not marked as active
-    // var rowIsActive = rowValues[headerColumnNum("_active") - 1] === true;
-    if (!rowObject["_active"] === true) {
-      fs.deleteDocument(sheetName() + "/" + rowId);
-      docsDeleted++;
-      return;
-    }
-
-    //Updating/creating FS documents from valid rows
-    fs.updateDocument(sheetName() + "/" + rowId, rowToFsDocObject(rowValues),true);
-    docsUpdated++;
-  });
-
-  //Load current FS documents
-  const fsDocs = fs.getDocuments(sheetName());
-
-  //Add to sheet the FS documents that are missing
-  var idColumnValues = sheet().getRange(2, headerColumnNum("_id"), sheet().getLastRow() - 2 + 1, 1).getValues();
-  var existingIds = idColumnValues.map(idRangeValues => idRangeValues[0].toString());//since each row is an array
-  fsDocs.forEach((doc) => {
-    var docId = doc.name.substring(doc.name.lastIndexOf("/") + 1);
-    if (existingIds.indexOf(docId) < 0) {
-      addDocFromFirestore(docId, doc.fields);
-      docsAdded++;
-    }
-  });
+  }
 
   formatCells();
 

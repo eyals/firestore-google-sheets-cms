@@ -9,6 +9,15 @@ function createMenu(){
     },
     null,
     {
+      name: "⬆️ Only update Firestore from sheet",
+      functionName: "FirestoreCMS.updateFirestoreFromSheet"
+    },
+    {
+      name: "⬇️ Only download missing docs from Firestore",
+      functionName: "FirestoreCMS.downloadMissingDocsFromFirestore"
+    },
+    null,
+    {
       name: "Prepare sheet",
       functionName: "FirestoreCMS.prepSheet"
     },
