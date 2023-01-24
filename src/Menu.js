@@ -3,11 +3,23 @@
 function createMenu(){
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var menuEntries = [
-    { name: "🔄 Sync sheet with Firestore", functionName: "syncWithFirestore" },
+    {
+      name: "🔄 Sync sheet with Firestore",
+      functionName: "FirestoreCMS.syncWithFirestore"
+    },
     null,
-    { name: "Prepare sheet", functionName: "prepSheet" },
-    { name: "Configure service account", functionName: "serviceAccountPrompt" },
-    { name: "Help", functionName: "openHelp" },
+    {
+      name: "Prepare sheet",
+      functionName: "FirestoreCMS.prepSheet"
+    },
+    {
+      name: "Configure service account",
+      functionName: "FirestoreCMS.serviceAccountPrompt"
+    },
+    {
+      name: "Help",
+      functionName: "FirestoreCMS.openHelp"
+    },
   ];
   spreadsheet.addMenu("🔥 Firestore", menuEntries);
 
